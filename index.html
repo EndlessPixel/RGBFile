@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RGBFile - 文件数字基因艺术</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #121212;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #888;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .section {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+        
+        .section > * {
+            flex-shrink: 0;
+        }
+        
+        .canvas-container {
+            flex-grow: 1;
+            min-height: 100px;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            color: #00ff00;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .drop-area {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .drop-area:hover {
+            border-color: #00ff00;
+            background-color: rgba(0, 255, 0, 0.05);
+        }
+        
+        .drop-area.active {
+            border-color: #00ff00;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .canvas-container {
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #333;
+            border-radius: 4px;
+            max-width: 50%;
+            max-height: 100px;
+            min-height: 50px;
+            flex-grow: 1;
+        }
+        
+        canvas {
+            display: block;
+            background-color: #000;
+            image-rendering: pixelated;
+            height: auto;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #00cc00;
+        }
+        
+        button:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .info h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .info p {
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RGBFile</h1>
+            <p class="subtitle">文件数字基因艺术 - File to RGB Color Strip + Full Restore</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- Encode Section -->
+            <div class="section">
+                <h2>Encode - 文件转 RGB 色条</h2>
+                <div class="drop-area" id="encodeDropArea">
+                    <p>拖入文件或点击选择文件</p>
+                    <input type="file" id="encodeFileInput" style="display: none;">
+                </div>
+                <div class="canvas-container">
+                    <canvas id="encodeCanvas"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="encodeDownloadBtn" disabled>下载 PNG 图片</button>
+                </div>
+                <div class="info">
+                    <h3>编码说明</h3>
+                    <p>• 每 3 字节 = 1 个 RGB 颜色</p>
+                    <p>• 头部 32 色块 (96 字节)：前 3 色块为 RGBF 标识，后 29 色块存储文件名</p>
+                    <p>• 支持任意文件类型：.txt/.exe/.iso/.pdf/图片等</p>
+                </div>
+            </div>
+            
+            <!-- Decode Section -->
+            <div class="section">
+                <h2>Decode - RGB 色条转文件</h2>
+                <div class="drop-area" id="decodeDropArea">
+                    <p>拖入 RGB 色条图片或点击选择</p>
+                    <input type="file" id="decodeFileInput" style="display: none;" accept=".png">
+                </div>
+                <div class="canvas-container">
+                    <canvas id="decodeCanvas"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="decodeDownloadBtn" disabled>下载原文件</button>
+                </div>
+                <div class="info">
+                    <h3>解码说明</h3>
+                    <p>• 自动校验 RGBF 标识</p>
+                    <p>• 从头部读取并还原文件名（支持中文）</p>
+                    <p>• 无损还原原始文件数据</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let encodeFile = null;
+        let decodeImage = null;
+        let decodedFileName = '';
+        let decodedFileData = null;
+        
+        // RGBF 标识
+        const RGBF_SIGNATURE = [0x52, 0x47, 0x42, 0x46]; // 'RGBF' in ASCII
+        
+        // 初始化事件监听器
+        function initEventListeners() {
+            // Encode 区域
+            const encodeDropArea = document.getElementById('encodeDropArea');
+            const encodeFileInput = document.getElementById('encodeFileInput');
+            const encodeDownloadBtn = document.getElementById('encodeDownloadBtn');
+            
+            // 拖放事件
+            encodeDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                encodeDropArea.classList.add('active');
+            });
+            
+            encodeDropArea.addEventListener('dragleave', () => {
+                encodeDropArea.classList.remove('active');
+            });
+            
+            encodeDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                encodeDropArea.classList.remove('active');
+                if (e.dataTransfer.files.length > 0) {
+                    handleEncodeFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // 点击选择文件
+            encodeDropArea.addEventListener('click', () => {
+                encodeFileInput.click();
+            });
+            
+            encodeFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleEncodeFile(e.target.files[0]);
+                }
+            });
+            
+            // 下载按钮
+            encodeDownloadBtn.addEventListener('click', downloadEncodedImage);
+            
+            // Decode 区域
+            const decodeDropArea = document.getElementById('decodeDropArea');
+            const decodeFileInput = document.getElementById('decodeFileInput');
+            const decodeDownloadBtn = document.getElementById('decodeDownloadBtn');
+            
+            // 拖放事件
+            decodeDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                decodeDropArea.classList.add('active');
+            });
+            
+            decodeDropArea.addEventListener('dragleave', () => {
+                decodeDropArea.classList.remove('active');
+            });
+            
+            decodeDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                decodeDropArea.classList.remove('active');
+                if (e.dataTransfer.files.length > 0) {
+                    handleDecodeImage(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // 点击选择文件
+            decodeDropArea.addEventListener('click', () => {
+                decodeFileInput.click();
+            });
+            
+            decodeFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleDecodeImage(e.target.files[0]);
+                }
+            });
+            
+            // 下载按钮
+            decodeDownloadBtn.addEventListener('click', downloadDecodedFile);
+        }
+        
+        // 处理编码文件
+        function handleEncodeFile(file) {
+            encodeFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const arrayBuffer = e.target.result;
+                encodeToCanvas(arrayBuffer, file.name);
+                document.getElementById('encodeDownloadBtn').disabled = false;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 编码到画布
+        function encodeToCanvas(arrayBuffer, fileName) {
+            const canvas = document.getElementById('encodeCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const data = new Uint8Array(arrayBuffer);
+            const headerSize = 32; // 32 色块 = 96 字节
+            const totalSize = headerSize + Math.ceil(data.length / 3);
+            
+            canvas.width = totalSize;
+            canvas.height = 1;
+            
+            // 绘制头部
+            // 前 3 色块：RGBF 标识
+            const signature = new Uint8Array([0x52, 0x47, 0x42, 0x46, 0x00, 0x00, 0x00, 0x00, 0x00]); // 'RGBF' + 5 个 0 (3 色块 = 9 字节)
+            for (let i = 0; i < 3; i++) {
+                const r = signature[i * 3];
+                const g = signature[i * 3 + 1];
+                const b = signature[i * 3 + 2];
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillRect(i, 0, 1, 1);
+            }
+            
+            // 第 4-7 色块：存储文件长度（4 色块 = 12 字节，使用 64 位整数）
+            const fileLengthBuffer = new ArrayBuffer(8);
+            const fileLengthView = new DataView(fileLengthBuffer);
+            fileLengthView.setBigUint64(0, BigInt(data.length), true); // 小端序
+            const fileLengthBytes = new Uint8Array(fileLengthBuffer);
+            
+            for (let i = 0; i < 4; i++) {
+                const r = fileLengthBytes[i * 3] || 0;
+                const g = fileLengthBytes[i * 3 + 1] || 0;
+                const b = fileLengthBytes[i * 3 + 2] || 0;
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillRect(3 + i, 0, 1, 1);
+            }
+            
+            // 后面 25 色块：存储文件名（UTF-8 + 0x00 结束符）
+            const fileNameBytes = new TextEncoder().encode(fileName);
+            const fileNameBuffer = new Uint8Array(25 * 3);
+            fileNameBuffer.set(fileNameBytes, 0);
+            fileNameBuffer[fileNameBytes.length] = 0; // 添加结束符
+            
+            for (let i = 0; i < 25; i++) {
+                const r = fileNameBuffer[i * 3];
+                const g = fileNameBuffer[i * 3 + 1];
+                const b = fileNameBuffer[i * 3 + 2];
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillRect(7 + i, 0, 1, 1);
+            }
+            
+            // 绘制文件数据
+            for (let i = 0; i < data.length; i += 3) {
+                const r = data[i];
+                const g = data[i + 1] || 0;
+                const b = data[i + 2] || 0;
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillRect(headerSize + Math.floor(i / 3), 0, 1, 1);
+            }
+        }
+        
+        // 下载编码后的图片
+        function downloadEncodedImage() {
+            const canvas = document.getElementById('encodeCanvas');
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = encodeFile.name + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+        
+        // 处理解码图片
+        function handleDecodeImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    decodeFromCanvas(img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 从画布解码
+        function decodeFromCanvas(img) {
+            const canvas = document.getElementById('decodeCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = 1;
+            ctx.drawImage(img, 0, 0, img.width, 1);
+            
+            // 读取头部信息
+            const headerSize = 32;
+            const headerPixels = ctx.getImageData(0, 0, headerSize, 1).data;
+            
+            // 验证 RGBF 标识
+            const signature = new Uint8Array(9);
+            for (let i = 0; i < 3; i++) {
+                // 每个色块对应 4 通道，只取 RGB
+                signature[i * 3] = headerPixels[i * 4];     // R
+                signature[i * 3 + 1] = headerPixels[i * 4 + 1]; // G
+                signature[i * 3 + 2] = headerPixels[i * 4 + 2]; // B
+            }
+            
+            const expectedSignature = new Uint8Array([0x52, 0x47, 0x42, 0x46, 0x00, 0x00, 0x00, 0x00, 0x00]);
+            let isValid = true;
+            for (let i = 0; i < 9; i++) {
+                if (signature[i] !== expectedSignature[i]) {
+                    isValid = false;
+                    break;
+                }
+            }
+            
+            if (!isValid) {
+                alert('无效的 RGBFile 图片，请上传正确的编码图片！');
+                return;
+            }
+            
+            // 读取文件长度
+            const fileLengthBuffer = new ArrayBuffer(8);
+            const fileLengthView = new DataView(fileLengthBuffer);
+            
+            // 直接从头部像素数据读取文件长度（小端序）
+            for (let i = 0; i < 8; i++) {
+                const blockIndex = 3 + Math.floor(i / 3); // 从第 3 个色块开始
+                const offsetInBlock = i % 3; // 在色块中的偏移
+                const pixelIndex = blockIndex * 4 + offsetInBlock;
+                fileLengthView.setUint8(i, headerPixels[pixelIndex]);
+            }
+            
+            const fileLength = Number(fileLengthView.getBigUint64(0, true)); // 小端序
+            
+            // 读取文件名
+            const fileNameBuffer = new Uint8Array(25 * 3);
+            for (let i = 0; i < 25; i++) {
+                // 从第 7 个色块开始，每个色块对应 4 通道
+                const pixelIndex = (7 + i) * 4;
+                fileNameBuffer[i * 3] = headerPixels[pixelIndex];     // R
+                fileNameBuffer[i * 3 + 1] = headerPixels[pixelIndex + 1]; // G
+                fileNameBuffer[i * 3 + 2] = headerPixels[pixelIndex + 2]; // B
+            }
+            
+            // 找到结束符位置
+            let nullIndex = fileNameBuffer.indexOf(0);
+            if (nullIndex === -1) nullIndex = fileNameBuffer.length;
+            const fileNameBytes = fileNameBuffer.slice(0, nullIndex);
+            decodedFileName = new TextDecoder().decode(fileNameBytes);
+            
+            // 读取文件数据
+            const dataSize = img.width - headerSize;
+            const dataPixels = ctx.getImageData(headerSize, 0, dataSize, 1).data;
+            const data = new Uint8Array(dataSize * 3);
+            
+            // 确保每个字节都被正确读取
+            for (let i = 0; i < dataSize; i++) {
+                // 每个色块对应 4 通道，只取 RGB
+                const pixelIndex = i * 4;
+                data[i * 3] = dataPixels[pixelIndex];     // R
+                data[i * 3 + 1] = dataPixels[pixelIndex + 1]; // G
+                data[i * 3 + 2] = dataPixels[pixelIndex + 2]; // B
+            }
+            
+            // 根据实际文件长度截断数据
+            decodedFileData = data.slice(0, fileLength);
+            document.getElementById('decodeDownloadBtn').disabled = false;
+        }
+        
+        // 下载解码后的文件
+        function downloadDecodedFile() {
+            if (!decodedFileData || !decodedFileName) return;
+            
+            const blob = new Blob([decodedFileData], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = decodedFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 初始化应用
+        window.addEventListener('DOMContentLoaded', initEventListeners);
+    </script>
+</body>
+</html>

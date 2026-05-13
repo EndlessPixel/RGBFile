@@ -21,6 +21,11 @@
                     <p>拖入文件或点击选择文件</p>
                     <input type="file" id="encodeFileInput" style="display: none;">
                 </div>
+                <div class="file-info" id="encodeFileInfo" style="display: none;">
+                    <h3>已选择文件</h3>
+                    <p>文件名：<span id="encodeFileName"></span></p>
+                    <p>文件大小：<span id="encodeFileSize"></span></p>
+                </div>
                 <div class="canvas-container">
                     <canvas id="encodeCanvas"></canvas>
                 </div>
@@ -31,7 +36,6 @@
                     <h3>编码说明</h3>
                     <p>• 每 3 字节 = 1 个 RGB 颜色</p>
                     <p>• 头部 32 色块 (96 字节)：前 3 色块为 RGBF 标识，后 29 色块存储文件名</p>
-                    <p>• 支持任意文件类型：.txt/.exe/.iso/.pdf/图片等</p>
                 </div>
             </div>
             
@@ -41,6 +45,11 @@
                 <div class="drop-area" id="decodeDropArea">
                     <p>拖入 RGB 色条图片或点击选择</p>
                     <input type="file" id="decodeFileInput" style="display: none;" accept=".png">
+                </div>
+                <div class="file-info" id="decodeFileInfo" style="display: none;">
+                    <h3>已选择文件</h3>
+                    <p>文件名：<span id="decodeFileName"></span></p>
+                    <p>文件大小：<span id="decodeFileSize"></span></p>
                 </div>
                 <div class="canvas-container">
                     <canvas id="decodeCanvas"></canvas>

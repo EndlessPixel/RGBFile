@@ -7,6 +7,15 @@ let decodedFileData = null;
 // RGBF 标识
 const RGBF_SIGNATURE = [0x52, 0x47, 0x42, 0x46]; // 'RGBF' in ASCII
 
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 // 初始化事件监听器
 function initEventListeners() {
     // Encode 区域
@@ -87,6 +96,12 @@ function initEventListeners() {
 // 处理编码文件
 function handleEncodeFile(file) {
     encodeFile = file;
+    
+    // 显示文件信息
+    document.getElementById('encodeFileInfo').style.display = 'block';
+    document.getElementById('encodeFileName').textContent = file.name;
+    document.getElementById('encodeFileSize').textContent = formatFileSize(file.size);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
         const arrayBuffer = e.target.result;
@@ -174,6 +189,11 @@ function downloadEncodedImage() {
 
 // 处理解码图片
 function handleDecodeImage(file) {
+    // 显示文件信息
+    document.getElementById('decodeFileInfo').style.display = 'block';
+    document.getElementById('decodeFileName').textContent = file.name;
+    document.getElementById('decodeFileSize').textContent = formatFileSize(file.size);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
         const img = new Image();
@@ -267,6 +287,11 @@ function decodeFromCanvas(img) {
     
     // 根据实际文件长度截断数据
     decodedFileData = data.slice(0, fileLength);
+    
+    // 更新文件信息显示，显示还原文件信息
+    document.getElementById('decodeFileName').textContent = decodedFileName;
+    document.getElementById('decodeFileSize').textContent = formatFileSize(fileLength);
+    
     document.getElementById('decodeDownloadBtn').disabled = false;
 }
 

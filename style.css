@@ -126,6 +126,31 @@ button:disabled {
     cursor: not-allowed;
 }
 
+.file-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    font-size: 0.9em;
+    border-left: 3px solid #00ff00;
+}
+
+.file-info h3 {
+    color: #00ff00;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.file-info p {
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.file-info span {
+    color: #fff;
+    font-weight: bold;
+}
+
 .info {
     margin-top: 20px;
     padding: 15px;

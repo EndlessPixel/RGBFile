@@ -13,55 +13,82 @@
             <p class="subtitle">文件数字基因艺术 - File to RGB Color Strip + Full Restore</p>
         </header>
         
-        <div class="main-content">
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="encode">Encode 编码</button>
+                <button class="tab-btn" data-tab="decode">Decode 解码</button>
+            </div>
+            
             <!-- Encode Section -->
-            <div class="section">
-                <h2>Encode - 文件转 RGB 色条</h2>
-                <div class="drop-area" id="encodeDropArea">
-                    <p>拖入文件或点击选择文件</p>
-                    <input type="file" id="encodeFileInput" style="display: none;">
-                </div>
-                <div class="file-info" id="encodeFileInfo" style="display: none;">
-                    <h3>已选择文件</h3>
-                    <p>文件名：<span id="encodeFileName"></span></p>
-                    <p>文件大小：<span id="encodeFileSize"></span></p>
-                </div>
-                <div class="canvas-container">
-                    <canvas id="encodeCanvas"></canvas>
-                </div>
-                <div class="controls">
-                    <button id="encodeDownloadBtn" disabled>下载 PNG 图片</button>
-                </div>
-                <div class="info">
-                    <h3>编码说明</h3>
-                    <p>• 每 3 字节 = 1 个 RGB 颜色</p>
-                    <p>• 头部 32 色块 (96 字节)：前 3 色块为 RGBF 标识，后 29 色块存储文件名</p>
+            <div class="tab-content active" id="encode-tab">
+                <div class="section">
+                    <h2>Encode - 文件转 RGB 色条</h2>
+                    <div class="mode-selector">
+                        <label>编码模式：</label>
+                        <select id="encodeMode">
+                            <option value="strip">条形 Strip（单行）</option>
+                            <option value="square">方形 Square（4096px换行）</option>
+                        </select>
+                    </div>
+                    <div class="drop-area" id="encodeDropArea">
+                        <p>拖入文件或点击选择文件</p>
+                        <input type="file" id="encodeFileInput" style="display: none;">
+                    </div>
+                    <div class="file-info" id="encodeFileInfo" style="display: none;">
+                        <h3>已选择文件</h3>
+                        <p>文件名：<span id="encodeFileName"></span></p>
+                        <p>文件大小：<span id="encodeFileSize"></span></p>
+                        <p>输出尺寸：<span id="encodeOutputSize"></span></p>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="encodeCanvas"></canvas>
+                    </div>
+                    <div class="controls">
+                        <button id="encodeDownloadBtn" disabled>下载 PNG 图片</button>
+                    </div>
+                    <div class="info">
+                        <h3>编码说明</h3>
+                        <p>• 条形模式：每 3 字节 = 1 个 RGB 颜色，单行排列</p>
+                        <p>• 方形模式：每 3 字节 = 1 个 RGB 颜色，每 4096 像素换行</p>
+                        <p>• 头部 32 色块 (96 字节)：RGBF 标识 + 文件长度 + 文件名</p>
+                    </div>
                 </div>
             </div>
             
             <!-- Decode Section -->
-            <div class="section">
-                <h2>Decode - RGB 色条转文件</h2>
-                <div class="drop-area" id="decodeDropArea">
-                    <p>拖入 RGB 色条图片或点击选择</p>
-                    <input type="file" id="decodeFileInput" style="display: none;" accept=".png">
-                </div>
-                <div class="file-info" id="decodeFileInfo" style="display: none;">
-                    <h3>已选择文件</h3>
-                    <p>文件名：<span id="decodeFileName"></span></p>
-                    <p>文件大小：<span id="decodeFileSize"></span></p>
-                </div>
-                <div class="canvas-container">
-                    <canvas id="decodeCanvas"></canvas>
-                </div>
-                <div class="controls">
-                    <button id="decodeDownloadBtn" disabled>下载原文件</button>
-                </div>
-                <div class="info">
-                    <h3>解码说明</h3>
-                    <p>• 自动校验 RGBF 标识</p>
-                    <p>• 从头部读取并还原文件名（支持中文）</p>
-                    <p>• 无损还原原始文件数据</p>
+            <div class="tab-content" id="decode-tab">
+                <div class="section">
+                    <h2>Decode - RGB 色条转文件</h2>
+                    <div class="mode-selector">
+                        <label>解码模式：</label>
+                        <select id="decodeMode">
+                            <option value="auto">自动检测</option>
+                            <option value="strip">条形 Strip（单行）</option>
+                            <option value="square">方形 Square（4096px换行）</option>
+                        </select>
+                    </div>
+                    <div class="drop-area" id="decodeDropArea">
+                        <p>拖入 RGB 色条图片或点击选择</p>
+                        <input type="file" id="decodeFileInput" style="display: none;" accept=".png">
+                    </div>
+                    <div class="file-info" id="decodeFileInfo" style="display: none;">
+                        <h3>已选择文件</h3>
+                        <p>文件名：<span id="decodeFileName"></span></p>
+                        <p>文件大小：<span id="decodeFileSize"></span></p>
+                        <p>检测到模式：<span id="decodeDetectedMode"></span></p>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="decodeCanvas"></canvas>
+                    </div>
+                    <div class="controls">
+                        <button id="decodeDownloadBtn" disabled>下载原文件</button>
+                    </div>
+                    <div class="info">
+                        <h3>解码说明</h3>
+                        <p>• 自动检测：智能识别条形或方形模式</p>
+                        <p>• 条形模式：适用于单行色条图片</p>
+                        <p>• 方形模式：适用于每 4096 像素换行的色条图片</p>
+                    </div>
                 </div>
             </div>
         </div>

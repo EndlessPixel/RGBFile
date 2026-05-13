@@ -27,8 +27,10 @@
                         <label>编码模式：</label>
                         <select id="encodeMode">
                             <option value="strip">条形 Strip（单行）</option>
-                            <option value="square">方形 Square（4096px换行）</option>
+                            <option value="square">方形 Square（可配置像素）</option>
                         </select>
+                        <label class="pixel-config" id="encodePixelLabel">单行像素：</label>
+                        <input type="number" id="encodePixelsPerLine" value="4096" min="1" max="65535">
                     </div>
                     <div class="drop-area" id="encodeDropArea">
                         <p>拖入文件或点击选择文件</p>
@@ -49,7 +51,7 @@
                     <div class="info">
                         <h3>编码说明</h3>
                         <p>• 条形模式：每 3 字节 = 1 个 RGB 颜色，单行排列</p>
-                        <p>• 方形模式：每 3 字节 = 1 个 RGB 颜色，每 4096 像素换行</p>
+                        <p>• 方形模式：每 3 字节 = 1 个 RGB 颜色，可配置单行像素数量</p>
                         <p>• 头部 32 色块 (96 字节)：RGBF 标识 + 文件长度 + 文件名</p>
                     </div>
                 </div>
@@ -64,8 +66,10 @@
                         <select id="decodeMode">
                             <option value="auto">自动检测</option>
                             <option value="strip">条形 Strip（单行）</option>
-                            <option value="square">方形 Square（4096px换行）</option>
+                            <option value="square">方形 Square（可配置像素）</option>
                         </select>
+                        <label class="pixel-config" id="decodePixelLabel">单行像素：</label>
+                        <input type="number" id="decodePixelsPerLine" value="4096" min="1" max="65535">
                     </div>
                     <div class="drop-area" id="decodeDropArea">
                         <p>拖入 RGB 色条图片或点击选择</p>
@@ -87,7 +91,7 @@
                         <h3>解码说明</h3>
                         <p>• 自动检测：智能识别条形或方形模式</p>
                         <p>• 条形模式：适用于单行色条图片</p>
-                        <p>• 方形模式：适用于每 4096 像素换行的色条图片</p>
+                        <p>• 方形模式：适用于可配置单行像素的色条图片</p>
                     </div>
                 </div>
             </div>

@@ -7,9 +7,6 @@ let decodedFileData = null;
 // RGBF 标识
 const RGBF_SIGNATURE = [0x52, 0x47, 0x42, 0x46]; // 'RGBF' in ASCII
 
-// 4096像素换行常量
-const SQUARE_SIZE = 4096;
-
 // 格式化文件大小
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 B';
@@ -42,9 +39,44 @@ function initTabs() {
     });
 }
 
+// 初始化模式切换事件
+function initModeSelector() {
+    const encodeMode = document.getElementById('encodeMode');
+    const decodeMode = document.getElementById('decodeMode');
+    const encodePixelLabel = document.getElementById('encodePixelLabel');
+    const decodePixelLabel = document.getElementById('decodePixelLabel');
+    
+    encodeMode.addEventListener('change', () => {
+        if (encodeMode.value === 'square') {
+            encodePixelLabel.style.display = 'inline';
+            document.getElementById('encodePixelsPerLine').style.display = 'inline';
+        } else {
+            encodePixelLabel.style.display = 'none';
+            document.getElementById('encodePixelsPerLine').style.display = 'none';
+        }
+    });
+    
+    decodeMode.addEventListener('change', () => {
+        if (decodeMode.value === 'square') {
+            decodePixelLabel.style.display = 'inline';
+            document.getElementById('decodePixelsPerLine').style.display = 'inline';
+        } else {
+            decodePixelLabel.style.display = 'none';
+            document.getElementById('decodePixelsPerLine').style.display = 'none';
+        }
+    });
+    
+    // 初始化状态
+    encodePixelLabel.style.display = 'none';
+    document.getElementById('encodePixelsPerLine').style.display = 'none';
+    decodePixelLabel.style.display = 'none';
+    document.getElementById('decodePixelsPerLine').style.display = 'none';
+}
+
 // 初始化事件监听器
 function initEventListeners() {
     initTabs();
+    initModeSelector();
     
     // Encode 区域
     const encodeDropArea = document.getElementById('encodeDropArea');
@@ -134,7 +166,8 @@ function handleEncodeFile(file) {
     reader.onload = (e) => {
         const arrayBuffer = e.target.result;
         const mode = document.getElementById('encodeMode').value;
-        const result = encodeToCanvas(arrayBuffer, file.name, mode);
+        const pixelsPerLine = parseInt(document.getElementById('encodePixelsPerLine').value) || 4096;
+        const result = encodeToCanvas(arrayBuffer, file.name, mode, pixelsPerLine);
         
         document.getElementById('encodeOutputSize').textContent = formatOutputSize(result.width, result.height);
         document.getElementById('encodeDownloadBtn').disabled = false;
@@ -143,7 +176,7 @@ function handleEncodeFile(file) {
 }
 
 // 编码到画布
-function encodeToCanvas(arrayBuffer, fileName, mode = 'strip') {
+function encodeToCanvas(arrayBuffer, fileName, mode = 'strip', pixelsPerLine = 4096) {
     const canvas = document.getElementById('encodeCanvas');
     const ctx = canvas.getContext('2d');
     
@@ -154,9 +187,9 @@ function encodeToCanvas(arrayBuffer, fileName, mode = 'strip') {
     let width, height;
     
     if (mode === 'square') {
-        // 方形模式：每4096像素换行
-        width = SQUARE_SIZE;
-        height = Math.ceil(dataWithHeader / SQUARE_SIZE);
+        // 方形模式：每指定像素换行
+        width = pixelsPerLine;
+        height = Math.ceil(dataWithHeader / pixelsPerLine);
     } else {
         // 条形模式：单行
         width = dataWithHeader;
@@ -229,7 +262,8 @@ function encodeToCanvas(arrayBuffer, fileName, mode = 'strip') {
 function downloadEncodedImage() {
     const canvas = document.getElementById('encodeCanvas');
     const mode = document.getElementById('encodeMode').value;
-    const ext = mode === 'square' ? '.square.png' : '.png';
+    const pixelsPerLine = document.getElementById('encodePixelsPerLine').value;
+    const ext = mode === 'square' ? `.${pixelsPerLine}.png` : '.png';
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -255,7 +289,8 @@ function handleDecodeImage(file) {
         const img = new Image();
         img.onload = () => {
             const mode = document.getElementById('decodeMode').value;
-            decodeFromCanvas(img, mode);
+            const pixelsPerLine = parseInt(document.getElementById('decodePixelsPerLine').value) || 4096;
+            decodeFromCanvas(img, mode, pixelsPerLine);
         };
         img.src = e.target.result;
     };
@@ -263,7 +298,7 @@ function handleDecodeImage(file) {
 }
 
 // 从画布解码
-function decodeFromCanvas(img, mode = 'auto') {
+function decodeFromCanvas(img, mode = 'auto', pixelsPerLine = 4096) {
     const canvas = document.getElementById('decodeCanvas');
     const ctx = canvas.getContext('2d');
     
@@ -277,7 +312,7 @@ function decodeFromCanvas(img, mode = 'auto') {
         detectedMode = 'square';
     }
     
-    document.getElementById('decodeDetectedMode').textContent = detectedMode === 'square' ? '方形 Square' : '条形 Strip';
+    document.getElementById('decodeDetectedMode').textContent = detectedMode === 'square' ? `方形 Square (${pixelsPerLine}px)` : '条形 Strip';
     
     const width = img.width;
     const height = img.height;

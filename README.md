@@ -52,6 +52,8 @@ RGBFile 是一个纯前端 HTML 单页应用，无需后端，无需依赖，直
 ```
 RGBFile/
 ├── index.html    # 主应用文件
+├── style.css     # 样式文件
+├── script.js    # 脚本文件
 └── README.md     # 项目说明
 ```
 
